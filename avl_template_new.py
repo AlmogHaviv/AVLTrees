@@ -27,7 +27,7 @@ class AVLNode(object):
 	@returns: the left child of self, None if there is no left child (if self is virtual)
 	"""
 	def get_left(self):
-		return None
+		return self.left
 
 
 
@@ -37,7 +37,7 @@ class AVLNode(object):
 	@returns: the right child of self, None if there is no right child (if self is virtual)
 	"""
 	def get_right(self):
-		return None
+		return self.right
 
 
 	"""returns the parent 
@@ -46,7 +46,7 @@ class AVLNode(object):
 	@returns: the parent of self, None if there is no parent
 	"""
 	def get_parent(self):
-		return None
+		return self.parent
 
 
 	"""returns the value
@@ -55,6 +55,8 @@ class AVLNode(object):
 	@returns: the value of self, None if the node is virtual
 	"""
 	def get_value(self):
+		if self.is_real_node():
+			return self.value
 		return None
 
 
@@ -64,7 +66,7 @@ class AVLNode(object):
 	@returns: the height of self, -1 if the node is virtual
 	"""
 	def get_height(self):
-		return -1
+		return self.height
 
 
 	"""sets left child
@@ -73,8 +75,8 @@ class AVLNode(object):
 	@param node: a node
 	"""
 	def set_left(self, node):
-		return None
-
+		self.left = node
+		self.height = 1 + max(self.left.height, self.right.height) 
 
 	"""sets right child
 
@@ -82,7 +84,8 @@ class AVLNode(object):
 	@param node: a node
 	"""
 	def set_right(self, node):
-		return None
+		self.right = node
+		self.height = 1 + max(self.left.height, self.right.height)
 
 
 	"""sets parent
@@ -91,7 +94,12 @@ class AVLNode(object):
 	@param node: a node
 	"""
 	def set_parent(self, node):
-		return None
+		self.parent = node
+		if self.key < node.key:
+			node.left = self
+		else:
+			node.right = self
+		node.height = 1 + max(node.left.height, node.right.height) 
 
 
 	"""sets value
@@ -100,7 +108,7 @@ class AVLNode(object):
 	@param value: data
 	"""
 	def set_value(self, value):
-		return None
+		self.value = value
 
 
 	"""sets the balance factor of the node
@@ -109,7 +117,7 @@ class AVLNode(object):
 	@param h: the height
 	"""
 	def set_height(self, h):
-		return None
+		self.height = h
 
 
 	"""returns whether self is not a virtual node 
@@ -118,6 +126,8 @@ class AVLNode(object):
 	@returns: False if self is a virtual node, True otherwise.
 	"""
 	def is_real_node(self):
+		if self.height != -1:
+			return True
 		return False
 
 
