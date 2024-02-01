@@ -1,5 +1,5 @@
 #username - almoghaviv
-#id1      - 207298720 
+#id1      - 207298720
 #name1    - Almog Haviv
 #id2      - 322539651
 #name2    - tal9
@@ -9,7 +9,7 @@
 """A class represnting a node in an AVL tree"""
 
 class AVLNode(object):
-	"""Constructor, you are allowed to add more fields. 
+	"""Constructor, you are allowed to add more fields.
 
 	@type value: any
 	@param value: data of your node
@@ -20,7 +20,7 @@ class AVLNode(object):
 		self.right = None
 		self.parent = None
 		self.height = -1 # Balance factor
-		
+
 
 	"""returns the left child
 	@rtype: AVLNode
@@ -76,7 +76,7 @@ class AVLNode(object):
 	"""
 	def set_left(self, node):
 		self.left = node
-		self.height = 1 + max(self.left.height, self.right.height) 
+		self.height = 1 + max(self.left.height, self.right.height)
 
 	"""sets right child
 
@@ -99,7 +99,7 @@ class AVLNode(object):
 			node.left = self
 		else:
 			node.right = self
-		node.height = 1 + max(node.left.height, node.right.height) 
+		node.height = 1 + max(node.left.height, node.right.height)
 
 
 	"""sets value
@@ -144,7 +144,7 @@ class AVLTree(object):
 	"""
 	def __init__(self):
 		self.root = None
-		# add your fields here
+		self.size = 0
 
 
 
@@ -156,7 +156,15 @@ class AVLTree(object):
 	@returns: the value corresponding to key.
 	"""
 	def search(self, key):
-		return None
+		node = self.root
+		while node.key is not None: # as long node is not a virtual node do:
+			if node.key == key: # found it!
+				return node.value
+			elif node.key > key: # its in the right subtree
+				node = node.left
+			else:  #its in the left subtree
+				node = node.right
+		return None	 # not found
 
 
 	"""inserts val at position i in the dictionary
@@ -199,9 +207,9 @@ class AVLTree(object):
 	@returns: the number of items in dictionary 
 	"""
 	def size(self):
-		return -1	
+		return -1
 
-	
+
 	"""splits the dictionary at the i'th index
 
 	@type node: AVLNode
@@ -215,7 +223,7 @@ class AVLTree(object):
 	def split(self, node):
 		return None
 
-	
+
 	"""joins self with key and another AVLTree
 
 	@type tree2: AVLTree 
