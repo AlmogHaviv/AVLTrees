@@ -245,8 +245,10 @@ class AVLTree(object):
             BF = 0
         if node.left is None:
             BF = -1 - node.right.height
-
-        BF = node.left.height - node.right.height
+        if node.right is None:
+            BF = node.left.height +1
+        else:
+            BF = node.left.height - node.right.height
         return BF
 
 
