@@ -23,7 +23,7 @@ class AVLNode(object):
         self.right = None
         self.parent = None
         self.height = -1  # Balance factor
-        self.prevheight = -1 # waaaaaaaaaaaaaaaaaaaaa
+        self.prevheight = -1 # Holding the previous height for balance factor 
 
     """returns the left child
     @rtype: AVLNode
