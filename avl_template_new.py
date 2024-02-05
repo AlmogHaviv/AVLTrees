@@ -106,7 +106,9 @@ class AVLNode(object):
     """
     def is_real_node(self):
         if self.height != -1:
+            print("true")
             return True
+        print("false")
         return False
 
 
@@ -169,7 +171,7 @@ class AVLTree(object):
 		# dealing with root node
         if parent_node is None:
             return 0
-
+      
         # Perform AVL rebalancing
         while parent_node.is_real_node:
             BF = self.compute_bf(parent_node)
@@ -179,9 +181,11 @@ class AVLTree(object):
             elif abs(BF) < 2 and parent_node.height != parent_node.prevheight:
                 # Adjust parent height and continue rebalancing
                 parent_node = parent_node.parent
+                if parent_node is None:
+                    return 0
             else:
                 # Rebalancing needed
-                if parent_node.right.is_real_node:
+                if parent_node.right.height != -1 :
                     BF_child = self.compute_bf(parent_node.right)
                     if BF_child == -1:
                         # Perform left rotation
@@ -213,7 +217,7 @@ class AVLTree(object):
                 return insert_new_node(key, val)
             else:
                 node = insert_new_node(key, val)
-                node.parent = root
+                node.parent = parent
                 return node
 
         if key < root.key:
