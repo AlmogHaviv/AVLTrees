@@ -105,11 +105,9 @@ class AVLNode(object):
     @returns: False if self is a virtual node, True otherwise.
     """
     def is_real_node(self):
-        if self.height != -1:
-            print("true")
-            return True
-        print("false")
-        return False
+        if self.height == -1:
+            return False
+        return True
 
 
 """
@@ -137,7 +135,7 @@ class AVLTree(object):
 
     def search(self, key):
         node = self.root
-        while node.is_real_node:  # as long node is not a virtual node do:
+        while node.height != -1:  # as long node is not a virtual node do:
             if node.key == key:  # found it!
                 return node
             elif node.key > key:  # it's in the right subtree
@@ -173,7 +171,7 @@ class AVLTree(object):
             return 0
       
         # Perform AVL rebalancing
-        while parent_node.is_real_node:
+        while parent_node.height != -1:
             BF = self.compute_bf(parent_node)
             if abs(BF) < 2 and parent_node.height == parent_node.prevheight:
                 # No rebalancing needed
@@ -184,41 +182,15 @@ class AVLTree(object):
                 if parent_node is None:
                     return 0
             else:
-                # Rebalancing needed
-                if parent_node.right.height != -1 :
-                    BF_child = self.compute_bf(parent_node.right)
-                    if BF_child == -1:
-                        # Perform left rotation
-                        self.left_rotation(parent_node, parent_node.right)
-                        return 1
-                    else:
-                        # Perform right and left rotations
-                        self.right_rotation()
-                        self.left_rotation()
-                        return 2
-                else:
-                    BF_child = self.compute_bf(parent_node.left)
-                    if BF_child == -1:
-                        # Perform left and right rotations
-                        self.left_rotation()
-                        self.right_rotation()
-                        return 2
-                    else:
-                        # Perform right rotation
-                        self.right_rotation()
-                        return 1
+                return self.rotating_for_balance(parent_node)
 
     # Recursive option for inserting a node while dealing with heights
     def insert_to_bst(self, root, parent, key, val):
         # Stop condition - if a child is imaginary
         if root.key is None:
-            # Dealing with an empty tree
-            if parent is None:
-                return insert_new_node(key, val)
-            else:
-                node = insert_new_node(key, val)
-                node.parent = parent
-                return node
+            node = insert_new_node(key, val)
+            node.parent = parent
+            return node
 
         if key < root.key:
             root.left = self.insert_to_bst(root.left, root, key, val)
@@ -230,62 +202,77 @@ class AVLTree(object):
 
         return root
 
+    # Compute balance factor
     def compute_bf(self, node):
-        if node.left is None and node.right is None:
-            BF = 0
-        if node.left is None:
-            BF = -1 - node.right.height
-        if node.right is None:
-            BF = node.left.height +1
-        else:
-            BF = node.left.height - node.right.height
-            
         BF = node.left.height - node.right.height
         return BF
-
-    def left_rotation(self, node1, node2):
-        if node1 is self.root:
-            self.root = node2
+    
+	# Doing the full cycle of rotation for while - loop
+    def rotating_for_balance(self, parent_node):
+        # Rebalancing needed
+        if self.compute_bf(parent_node) == -2 :
+            BF_child = self.compute_bf(parent_node.right)
+            if BF_child == -1:
+            # Perform left rotation
+                self.left_rotation(parent_node, parent_node.right)
+                return 1
+            else:
+            # Perform right and left rotations
+                self.right_rotation(parent_node.right, parent_node.right.left)
+                self.left_rotation( parent_node, parent_node.right)
+                return 2
         else:
-            # Set the parent of node2 to be the same as the parent of node1
-            node2.parent = node1.parent
+            BF_child = self.compute_bf(parent_node.left)
+            if BF_child == -1:
+             # Perform left and right rotations
+                self.left_rotation(parent_node.left, parent_node.left.right)
+                self.right_rotation(parent_node, parent_node.left)
+                return 2
+            else:
+            # Perform right rotation
+                self.right_rotation(parent_node, parent_node.left)
+                return 1
 
-            # Update the right child of the parent of node1 to be node2
-            node2.parent.right = node2
 
-        # Set the left child of node2 to be node1
-        node2.left = node1
-
-        # Update the parent of node1 to be node2
-        node1.parent = node2
-
-        # Set the right child of node1 to be the left child of node2
-        node1.right = node2.left
-
-        # Update the parent of the left child of node2 to be node1
-        node2.left.parent = node1
-
-    def right_rotation(self, node1, node2):
-        if node1 is self.root:
-            self.root = node2
+    # Doing rhe right rotation for insert/delete
+    def left_rotation(self, B, A):
+        B.right = A.left
+        B.right.parent = B
+        A.left = B 
+        A.parent = B.parent
+        if A.parent is None:
+            self.root = A
+        elif A.parent.key < A.key:
+            A.parent.right = A
         else:
-            # Set the parent of node2 to be the same as the parent of node1
-            node2.parent = node1.parent
-
-            # Update the left child of the parent of node1 to be node2
-            node1.parent.left = node2
-
-        # Update the parent of node1 to be node2
-        node1.parent = node2
-
-        # Set the right child of node2 to be node1
-        node2.right = node1
-
-        # Set the left child of node1 to be the right child of node2
-        node1.left = node2.right
-
-        # Update the parent of the right child of node2 to be node1
-        node2.right.parent = node1
+            A.parent.left = A
+        B.parent = A
+        
+		# setting the heights
+        A.prevheight = A.height
+        B.prevheight = B.height
+        B.height = 1 + max(B.left.height, B.right.height)
+        A.height = 1 + max(A.left.height, A.right.height)
+        
+	# Doing rhe right rotation for insert/delete
+    def right_rotation(self, B, A):
+        B.left = A.left
+        B.left.parent = B
+        A.right = B 
+        A.parent = B.parent
+        if A.parent is None:
+            self.root = A
+        elif A.parent.key < A.key:
+            A.parent.right = A
+        else:
+            A.parent.left = A
+        B.parent = A
+ 
+		# setting the heights
+        A.prevheight = A.height
+        B.prevheight = B.height
+        A.height = 1 + max(A.left.height, A.right.height)
+        B.height = 1 + max(B.left.height, B.right.height)
 
     """
     Deletes node from the dictionary.
@@ -314,7 +301,7 @@ class AVLTree(object):
     @returns: the number of items in the dictionary
     """
     def size(self):
-        return -1
+        return self.size
 
     """
     Splits the dictionary at the i'th index.
@@ -353,7 +340,7 @@ class AVLTree(object):
     @returns: the root, None if the dictionary is empty
     """
     def get_root(self):
-        return None
+        return self.root
 
 
 # Creating a function for a new node in an AVL tree

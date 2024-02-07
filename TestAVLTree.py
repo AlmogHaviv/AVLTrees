@@ -38,5 +38,49 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(avl_tree.root.get_left().get_value(), "one")
         self.assertEqual(avl_tree.root.get_right().get_value(), "three")
 
+    def test_avl_insert_rebalance2(self):
+        avl_tree = avl_template_new.AVLTree()
+
+        # Insert nodes into the AVL tree to test rebalancing
+        avl_tree.insert(6, "six")
+        avl_tree.insert(7, "seven")
+        avl_tree.insert(8, "eight")
+
+        # Check that the AVL tree is balanced after insertions
+        self.assertEqual(avl_tree.root.get_value(), "seven")
+        self.assertEqual(avl_tree.root.get_left().get_value(), "six")
+        self.assertEqual(avl_tree.root.get_right().get_value(), "eight")
+    
+    def test_avl_insert_rebalance3(self):
+        avl_tree = avl_template_new.AVLTree()
+
+        # Insert nodes into the AVL tree to test rebalancing
+        avl_tree.insert(6, "six")
+        avl_tree.insert(8, "eight")
+        avl_tree.insert(7, "seven")
+        
+
+        # Check that the AVL tree is balanced after insertions
+        self.assertEqual(avl_tree.root.get_value(), "seven")
+        self.assertEqual(avl_tree.root.get_left().get_value(), "six")
+        self.assertEqual(avl_tree.root.get_right().get_value(), "eight")
+
+    def test_avl_insert_rebalance4(self):
+            avl_tree = avl_template_new.AVLTree()
+
+            # Insert nodes into the AVL tree to test rebalancing
+            avl_tree.insert(8, "eight")
+            avl_tree.insert(6, "six")
+            avl_tree.insert(7, "seven")
+            
+
+            # Check that the AVL tree is balanced after insertions
+            self.assertEqual(avl_tree.root.get_value(), "seven")
+            self.assertEqual(avl_tree.root.get_left().get_value(), "six")
+            self.assertEqual(avl_tree.root.get_right().get_value(), "eight")
+
+
+    
+
 if __name__ == '__main__':
    unittest.main()
