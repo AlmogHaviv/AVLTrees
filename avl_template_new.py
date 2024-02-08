@@ -5,7 +5,7 @@
 # name2    - tal9
 
 
-"""A class represnting a node in an AVL tree"""
+"""A class representing a node in an AVL tree"""
 
 
 class AVLNode(object):
@@ -22,8 +22,7 @@ class AVLNode(object):
         self.left = None
         self.right = None
         self.parent = None
-        self.height = -1  # Balance factor
-        self.prevheight = -1 # Holding the previous height for balance factor 
+        self.height = -1
 
     """returns the left child
     @rtype: AVLNode
@@ -51,16 +50,21 @@ class AVLNode(object):
     @returns: the value of self, None if the node is virtual
     """
     def get_value(self):
-        if self.is_real_node():
-            return self.value
-        return None
-    
+        return self.value  # if the node is virtual he's value is None
+
+    """returns the key
+    @rtype: int or None
+    @returns: the key of self, None if the node is virtual
+    """
+    def get_key(self):
+        return self.key  # if the node is virtual he's key is None
+
     """returns the height
     @rtype: int
     @returns: the height of self, -1 if the node is virtual
     """
     def get_height(self):
-        return self.height
+        return self.height  # if the node is virtual he's height is -1
 
     """sets left child
     @type node: AVLNode
@@ -84,7 +88,13 @@ class AVLNode(object):
     """
     def set_parent(self, node):
         self.parent = node
-      
+
+    """sets key
+    @type key: int or None
+    @param key: key
+    """
+    def set_key(self, key):
+        self.key = key
 
     """sets value
     @type value: any
@@ -124,9 +134,9 @@ class AVLTree(object):
         self.root = AVLNode(None, None)
         self.size = 0
 
-    """
-    Searches for a value in the dictionary corresponding to the key.
 
+    """ 
+    Searches for a value in the dictionary corresponding to the key.
     @type key: int
     @param key: a key to be searched
     @rtype: any
@@ -134,15 +144,23 @@ class AVLTree(object):
     """
 
     def search(self, key):
+        # Start the search from the root of the AVL tree
         node = self.root
-        while node.height != -1:  # as long node is not a virtual node do:
-            if node.key == key:  # found it!
+
+        # Iterate until reaching a virtual node
+        while node.is_real_node():
+            # If the current node's key matches the search key, return the node
+            if node.key == key:
                 return node
-            elif node.key > key:  # it's in the right subtree
+            # If the search key is smaller than the current node's key, search in the left subtree
+            elif node.key > key:
                 node = node.left
-            else:  # it's in the left subtree
+            # If the search key is greater than the current node's key, search in the right subtree
+            else:
                 node = node.right
-        return None  # not found
+
+        # If the search key is not found, return None
+        return None
 
     """
     Inserts val at position i in the dictionary.
@@ -155,124 +173,153 @@ class AVLTree(object):
     @rtype: int
     @returns: the number of rebalancing operations due to AVL rebalancing
     """
+
     def insert(self, key, val):
         # Insert the key and value into the AVL tree
         self.root = self.insert_to_bst(self.root, None, key, val)
 
+        # Increment the size of the AVL tree
+        self.size += 1
+
         # Search for the newly inserted node
         node = self.search(key)
         parent_node = node.parent
-        
-		# Increment the size of the dictionary
-        self.size += 1
-        
-		# dealing with root node
+
+        # If the inserted node is the root, no rebalancing needed
         if parent_node is None:
             return 0
-      
+
         # Perform AVL rebalancing
-        while parent_node.height != -1:
+        while parent_node is not None:
+            # Calculate the balance factor and current height of the parent node
             BF = self.compute_bf(parent_node)
-            if abs(BF) < 2 and parent_node.height == parent_node.prevheight:
-                # No rebalancing needed
+            curr_height = self.compute_height(parent_node)
+
+            # Check if rebalancing is needed
+            if abs(BF) < 2 and parent_node.height == curr_height:
+                # No rebalancing needed, return 0
                 return 0
-            elif abs(BF) < 2 and parent_node.height != parent_node.prevheight:
+            elif abs(BF) < 2 and parent_node.height != curr_height:
                 # Adjust parent height and continue rebalancing
+                parent_node.height = curr_height
                 parent_node = parent_node.parent
+                # If parent_node is None, stop rebalancing
                 if parent_node is None:
                     return 0
             else:
+                # Rebalancing needed, perform rotation
                 return self.rotating_for_balance(parent_node)
 
-    # Recursive option for inserting a node while dealing with heights
+    """ insert a node to binary search tree without changing heights """
+
     def insert_to_bst(self, root, parent, key, val):
-        # Stop condition - if a child is imaginary
-        if root.key is None:
+        # Stop condition - if the root is a virtual node
+        if not root.is_real_node():
+            # Create a new node with the given key and value
             node = insert_new_node(key, val)
             node.parent = parent
             return node
 
+        # If the key is less than the root's key, insert into the left subtree
         if key < root.key:
             root.left = self.insert_to_bst(root.left, root, key, val)
+        # If the key is greater than or equal to the root's key, insert into the right subtree
         else:
             root.right = self.insert_to_bst(root.right, root, key, val)
 
-        root.prevheight = root.height
-        root.height = 1 + max(root.left.height, root.right.height)
-
+        # Return the root of the subtree after insertion
         return root
 
-    # Compute balance factor
+    """ Compute current node's height"""
+    def compute_height(self, node):
+        return 1 + max(node.left.height, node.right.height)
+
+    """ Compute node's balance factor """
     def compute_bf(self, node):
         BF = node.left.height - node.right.height
         return BF
     
-	# Doing the full cycle of rotation for while - loop
+    """ Doing the full cycle of rotation """
     def rotating_for_balance(self, parent_node):
         # Rebalancing needed
-        if self.compute_bf(parent_node) == -2 :
+        if self.compute_bf(parent_node) == -2:
             BF_child = self.compute_bf(parent_node.right)
-            if BF_child == -1:
-            # Perform left rotation
+            if BF_child == 1:
+                # Perform right and left rotations
+                self.right_rotation(parent_node.right, parent_node.right.left)
+                self.left_rotation(parent_node, parent_node.right)
+                return 2
+            
+            else:
+                # Perform left rotation
                 self.left_rotation(parent_node, parent_node.right)
                 return 1
-            else:
-            # Perform right and left rotations
-                self.right_rotation(parent_node.right, parent_node.right.left)
-                self.left_rotation( parent_node, parent_node.right)
-                return 2
         else:
             BF_child = self.compute_bf(parent_node.left)
             if BF_child == -1:
-             # Perform left and right rotations
+                # Perform left and right rotations
                 self.left_rotation(parent_node.left, parent_node.left.right)
                 self.right_rotation(parent_node, parent_node.left)
                 return 2
             else:
-            # Perform right rotation
+                # Perform right rotation
                 self.right_rotation(parent_node, parent_node.left)
                 return 1
 
 
-    # Doing rhe right rotation for insert/delete
+    """ Doing a left rotation for fixing after insert / delete"""
+
     def left_rotation(self, B, A):
+        # Perform the left rotation
         B.right = A.left
         B.right.parent = B
-        A.left = B 
+        A.left = B
         A.parent = B.parent
+
+        # Update parent references
         if A.parent is None:
+            # If A is now the root node, update the root reference
             self.root = A
         elif A.parent.key < A.key:
+            # If A is on the right side of its parent, update the right child reference of the parent
             A.parent.right = A
         else:
+            # If A is on the left side of its parent, update the left child reference of the parent
             A.parent.left = A
+
+        # Update parent reference of B to A
         B.parent = A
-        
-		# setting the heights
-        A.prevheight = A.height
-        B.prevheight = B.height
-        B.height = 1 + max(B.left.height, B.right.height)
-        A.height = 1 + max(A.left.height, A.right.height)
-        
-	# Doing rhe right rotation for insert/delete
+
+        # Recalculate and update heights
+        B.height = self.compute_height(B)
+        A.height = self.compute_height(A)
+
+    """ Doing a right rotation for fixing after insert / delete"""
+
     def right_rotation(self, B, A):
-        B.left = A.left
+        # Perform the right rotation
+        B.left = A.right
         B.left.parent = B
-        A.right = B 
+        A.right = B
         A.parent = B.parent
+
+        # Update parent references
         if A.parent is None:
+            # If A is now the root node, update the root reference
             self.root = A
         elif A.parent.key < A.key:
+            # If A is on the right side of its parent, update the right child reference of the parent
             A.parent.right = A
         else:
+            # If A is on the left side of its parent, update the left child reference of the parent
             A.parent.left = A
+
+        # Update parent reference of B to A
         B.parent = A
- 
-		# setting the heights
-        A.prevheight = A.height
-        B.prevheight = B.height
-        A.height = 1 + max(A.left.height, A.right.height)
-        B.height = 1 + max(B.left.height, B.right.height)
+
+        # Recalculate and update heights
+        B.height = self.compute_height(B)
+        A.height = self.compute_height(A)
 
     """
     Deletes node from the dictionary.
@@ -282,8 +329,141 @@ class AVLTree(object):
     @rtype: int
     @returns: the number of rebalancing operations due to AVL rebalancing
     """
+
     def delete(self, node):
-        return -1
+        # Delete the node from the AVL tree and get the parent node of the deleted node
+        parent_node = self.delete_bst(node)
+
+        # Decrease the size of the AVL tree
+        self.size -= 1
+
+        # If the parent node is None, indicating the root was deleted, return 0 (no rebalancing needed)
+        if parent_node is None:
+            return 0
+
+        res = 0  # Counter for rebalancing operations
+
+        # Perform AVL rebalancing
+        while parent_node is not None:
+            # Calculate the balance factor and current height of the parent node
+            BF = self.compute_bf(parent_node)
+            curr_height = self.compute_height(parent_node)
+
+            # Check if rebalancing is needed
+            if abs(BF) < 2 and parent_node.height == curr_height:
+                # No rebalancing needed, return the total number of rebalancing operations
+                return res
+            elif abs(BF) < 2 and parent_node.height != curr_height:
+                # Adjust parent height and continue rebalancing
+                parent_node.height = curr_height
+                parent_node = parent_node.parent
+                # If parent_node is None, stop rebalancing
+                if parent_node is None:
+                    return res
+            else:
+                # Rebalancing needed, perform rotation and update res
+                res += self.rotating_for_balance(parent_node)
+                parent_node = parent_node.parent
+
+        # Return the total number of rebalancing operations
+        return res
+
+    """ Delete from the binary search tree without changing heights """
+    def delete_bst(self, node):
+        # Get the parent node of the node to be deleted
+        father = node.parent
+
+        # Case: Node is a leaf (has no children)
+        if not node.right.is_real_node() and not node.left.is_real_node():
+            # Check if the node to be deleted is the root
+            if father is None:
+                # Set the root to a virtual node
+                self.root = AVLNode(None, None)
+                return None
+
+            # If the node is a right child, remove it from its parent's right
+            if self.im_right_child(node):
+                father.right = AVLNode(None, None)
+                father.right.parent = father
+            # If the node is a left child, remove it from its parent's left
+            else:
+                father.left = AVLNode(None, None)
+                father.left.parent = father
+            return father
+
+        # Case: Node has only one child (either left or right)
+        elif not node.right.is_real_node():
+            if self.im_right_child(node):
+                # If the node is a right child, replace it with its left child
+                if father is None:
+                    self.root = node.left
+                    return None
+                father.right = node.left
+                father.left.parent = father
+            else:
+                # If the node is a left child, replace it with its left child
+                if father is None:
+                    self.root = node.left
+                    return None
+                father.left = node.left
+                father.left.parent = father
+            return father
+
+        elif not node.left.is_real_node():
+            if self.im_right_child(node):
+                # If the node is a right child, replace it with its right child
+                if father is None:
+                    self.root = node.right
+                father.right = node.right
+                father.right.parent = father
+            else:
+                # If the node is a left child, replace it with its right child
+                if father is None:
+                    self.root = node.right
+                father.left = node.right
+                father.left.parent = father
+            return father
+
+        # Case: Node has two children
+        else:
+            # Find the successor node
+            successor_node = self.successor(node)
+
+            # Copy the key and value of the successor node to the node to be deleted
+            node.key = successor_node.key
+            node.value = successor_node.value
+
+            # Delete the successor node recursively
+            return self.delete_bst(successor_node)
+
+    """ Check if the given node is the right child of its parent """
+    def im_right_child(self, node):
+        if node.key >= node.parent.key:
+            return True
+        return False
+
+    """ finds node's successor """
+    def successor(self, node):
+        # If the node has a right child, return the minimum node in the right subtree
+        if node.right.is_real_node:
+            return self.min(node.right)
+
+        # Otherwise, traverse up the tree until finding a parent node that is not the right child of its parent
+        father = node.parent
+        while father is not None and self.im_right_child(node):
+            node = father
+            father = father.parent
+
+        # Return the parent node, which is the successor of the original node
+        return father
+
+    """ finds the node with the minimum key in node's subtree """
+    def min(self, node):
+        # Traverse down the left subtree until reaching the minimum node (the leftmost node)
+        while node.left.is_real_node():
+            node = node.left
+        # Return the minimum node found
+        return node
 
     """
     Returns an array representing the dictionary.
@@ -343,7 +523,7 @@ class AVLTree(object):
         return self.root
 
 
-# Creating a function for a new node in an AVL tree
+""" Creating a function for a new node in an AVL tree """
 def insert_new_node(key, val):
     # Creating placeholder nodes for the left and right children of the new node
     child_right = AVLNode(None, None)
