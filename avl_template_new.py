@@ -23,7 +23,6 @@ class AVLNode(object):
         self.right = None
         self.parent = None
         self.height = -1  # Balance factor
-        self.prevheight = -1 # Holding the previous height for balance factor 
 
     """returns the left child
     @rtype: AVLNode
@@ -54,7 +53,14 @@ class AVLNode(object):
         if self.is_real_node():
             return self.value
         return None
-    
+
+    """returns the key
+    @rtype: int or None
+    @returns: the key of self, None if the node is virtual
+    """
+    def get_key(self):
+        return self.key
+
     """returns the height
     @rtype: int
     @returns: the height of self, -1 if the node is virtual
@@ -124,6 +130,7 @@ class AVLTree(object):
         self.root = AVLNode(None, None)
         self.size = 0
 
+
     """
     Searches for a value in the dictionary corresponding to the key.
 
@@ -135,7 +142,7 @@ class AVLTree(object):
 
     def search(self, key):
         node = self.root
-        while node.height != -1:  # as long node is not a virtual node do:
+        while node.is_real_node():  # as long node is not a virtual node do:
             if node.key == key:  # found it!
                 return node
             elif node.key > key:  # it's in the right subtree
@@ -171,23 +178,25 @@ class AVLTree(object):
             return 0
       
         # Perform AVL rebalancing
-        while parent_node.height != -1:
+        while parent_node is not None:
             BF = self.compute_bf(parent_node)
-            if abs(BF) < 2 and parent_node.height == parent_node.prevheight:
+            curr_height = self.compute_height(parent_node)
+            if abs(BF) < 2 and parent_node.height == curr_height:
                 # No rebalancing needed
                 return 0
-            elif abs(BF) < 2 and parent_node.height != parent_node.prevheight:
+            elif abs(BF) < 2 and parent_node.height != curr_height:
                 # Adjust parent height and continue rebalancing
+                parent_node.height = curr_height
                 parent_node = parent_node.parent
                 if parent_node is None:
                     return 0
             else:
                 return self.rotating_for_balance(parent_node)
 
-    # Recursive option for inserting a node while dealing with heights
+    # Recursive option for inserting a node without changing heights
     def insert_to_bst(self, root, parent, key, val):
         # Stop condition - if a child is imaginary
-        if root.key is None:
+        if not root.is_real_node():
             node = insert_new_node(key, val)
             node.parent = parent
             return node
@@ -197,10 +206,11 @@ class AVLTree(object):
         else:
             root.right = self.insert_to_bst(root.right, root, key, val)
 
-        root.prevheight = root.height
-        root.height = 1 + max(root.left.height, root.right.height)
-
         return root
+
+    # Compute current height
+    def compute_height(self, node):
+        return 1 + max(node.left.height, node.right.height)
 
     # Compute balance factor
     def compute_bf(self, node):
@@ -210,17 +220,18 @@ class AVLTree(object):
 	# Doing the full cycle of rotation for while - loop
     def rotating_for_balance(self, parent_node):
         # Rebalancing needed
-        if self.compute_bf(parent_node) == -2 :
+        if self.compute_bf(parent_node) == -2:
             BF_child = self.compute_bf(parent_node.right)
-            if BF_child == -1:
+            if BF_child == 1:
+            # Perform right and left rotations
+                self.right_rotation(parent_node.right, parent_node.right.left)
+                self.left_rotation(parent_node, parent_node.right)
+                return 2
+            
+            else:
             # Perform left rotation
                 self.left_rotation(parent_node, parent_node.right)
                 return 1
-            else:
-            # Perform right and left rotations
-                self.right_rotation(parent_node.right, parent_node.right.left)
-                self.left_rotation( parent_node, parent_node.right)
-                return 2
         else:
             BF_child = self.compute_bf(parent_node.left)
             if BF_child == -1:
@@ -234,7 +245,7 @@ class AVLTree(object):
                 return 1
 
 
-    # Doing rhe right rotation for insert/delete
+    # Doing rhe left rotation for insert/delete
     def left_rotation(self, B, A):
         B.right = A.left
         B.right.parent = B
@@ -249,14 +260,12 @@ class AVLTree(object):
         B.parent = A
         
 		# setting the heights
-        A.prevheight = A.height
-        B.prevheight = B.height
-        B.height = 1 + max(B.left.height, B.right.height)
-        A.height = 1 + max(A.left.height, A.right.height)
+        B.height = self.compute_height(B)
+        A.height = self.compute_height(A)
         
 	# Doing rhe right rotation for insert/delete
     def right_rotation(self, B, A):
-        B.left = A.left
+        B.left = A.right
         B.left.parent = B
         A.right = B 
         A.parent = B.parent
@@ -269,10 +278,8 @@ class AVLTree(object):
         B.parent = A
  
 		# setting the heights
-        A.prevheight = A.height
-        B.prevheight = B.height
-        A.height = 1 + max(A.left.height, A.right.height)
-        B.height = 1 + max(B.left.height, B.right.height)
+        B.height = self.compute_height(B)
+        A.height = self.compute_height(A)
 
     """
     Deletes node from the dictionary.
@@ -283,7 +290,108 @@ class AVLTree(object):
     @returns: the number of rebalancing operations due to AVL rebalancing
     """
     def delete(self, node):
-        return -1
+        parent_node = self.delete_bst(node)
+        self.size -= 1
+        if parent_node is None:
+            return 0
+        res = 0
+        # Perform AVL rebalancing
+        while parent_node is not None:
+            BF = self.compute_bf(parent_node)
+            curr_height = self.compute_height(parent_node)
+            if abs(BF) < 2 and parent_node.height == curr_height:
+                # No rebalancing needed
+                return res
+            elif abs(BF) < 2 and parent_node.height != curr_height:
+                # Adjust parent height and continue rebalancing
+                parent_node.height = curr_height
+                parent_node = parent_node.parent
+                
+            else:
+                res += self.rotating_for_balance(parent_node)
+                parent_node = parent_node.parent
+                
+        return res
+    # delete from bst without changing heights
+    def delete_bst(self, node):
+        father = node.parent
+        # if the node is leaf
+        if not node.right.is_real_node() and not node.left.is_real_node():
+            # if the node is root
+            if father is None:
+                self.root = AVLNode(None, None)
+                return None
+
+            if self.im_right_child(node):
+                father.right = AVLNode(None, None)
+                father.right.parent = father
+    
+            else:
+                father.left = AVLNode(None, None)
+                father.left.parent = father
+            return father
+        
+        # if the node have only one child
+        elif not node.right.is_real_node():
+           if self.im_right_child(node):
+                if father is None:
+                    self.root = node.left
+                    return None
+                father.right = node.left
+                father.left.parent = father
+           else:
+               if father is None:
+                   self.root = node.left
+                   return None
+               father.left = node.left
+               father.left.parent = father
+           return father
+        
+        elif not node.left.is_real_node():
+            if self.im_right_child(node):
+                if father is None:
+                    self.root = node.right
+                father.right = node.right
+                father.right.parent = father
+            else:
+                if father is None:
+                    self.root = node.right
+                father.left = node.right
+                father.left.parent = father
+            return father
+        
+        # the node have 2 children
+        else:
+            successor_node = self.successor(node)
+            node.key = successor_node.key
+            node.value = successor_node.value
+            return self.delete_bst(successor_node)
+
+       
+
+    def im_right_child (self, node):
+        if node.key >= node.parent.key:
+            return True
+        return False
+
+
+
+
+    def successor(self, node):
+        if node.right.is_real_node:
+            return self.min(node.right)
+        father = node.parent
+        while father is not None and self.im_right_child(node):
+            node = father
+            father = father.parent
+        return father
+
+
+    def min(self,node):
+        while node.left.is_real_node():
+            node= node.left
+        return node
+
 
     """
     Returns an array representing the dictionary.
