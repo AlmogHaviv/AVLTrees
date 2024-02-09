@@ -50,21 +50,21 @@ class AVLNode(object):
     @returns: the value of self, None if the node is virtual
     """
     def get_value(self):
-        return self.value  # if the node is virtual he's value is None
+        return self.value  # if the node is virtual it's value is None
 
     """returns the key
     @rtype: int or None
     @returns: the key of self, None if the node is virtual
     """
     def get_key(self):
-        return self.key  # if the node is virtual he's key is None
+        return self.key  # if the node is virtual it's key is None
 
     """returns the height
     @rtype: int
     @returns: the height of self, -1 if the node is virtual
     """
     def get_height(self):
-        return self.height  # if the node is virtual he's height is -1
+        return self.height  # if the node is virtual it's height is -1
 
     """sets left child
     @type node: AVLNode
@@ -331,15 +331,16 @@ class AVLTree(object):
     """
 
     def delete(self, node):
+        # Dealing with deleting the root
+        if self.size == 1:
+            self.root = AVLNode(None, None)
+            self.size = 0
+            return 0
         # Delete the node from the AVL tree and get the parent node of the deleted node
         parent_node = self.delete_bst(node)
 
         # Decrease the size of the AVL tree
         self.size -= 1
-
-        # If the parent node is None, indicating the root was deleted, return 0 (no rebalancing needed)
-        if parent_node is None:
-            return 0
 
         res = 0  # Counter for rebalancing operations
 
@@ -357,14 +358,12 @@ class AVLTree(object):
                 # Adjust parent height and continue rebalancing
                 parent_node.height = curr_height
                 parent_node = parent_node.parent
-                # If parent_node is None, stop rebalancing
-                if parent_node is None:
-                    return res
             else:
                 # Rebalancing needed, perform rotation and update res
+                father = parent_node.parent
                 res += self.rotating_for_balance(parent_node)
-                parent_node = parent_node.parent
-
+                parent_node = father
+                
         # Return the total number of rebalancing operations
         return res
 
@@ -375,12 +374,6 @@ class AVLTree(object):
 
         # Case: Node is a leaf (has no children)
         if not node.right.is_real_node() and not node.left.is_real_node():
-            # Check if the node to be deleted is the root
-            if father is None:
-                # Set the root to a virtual node
-                self.root = AVLNode(None, None)
-                return None
-
             # If the node is a right child, remove it from its parent's right
             if self.im_right_child(node):
                 father.right = AVLNode(None, None)
