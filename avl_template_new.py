@@ -11,9 +11,9 @@
 class AVLNode(object):
     """Constructor, you are allowed to add more fields.
 
-    @type value: any
+    @type key: int or None
     @param value: data of your node
-    @param key: key for your node to be searched according to
+    @param value: data of your node
     """
 
     def __init__(self, key, value):
@@ -139,8 +139,8 @@ class AVLTree(object):
     Searches for a value in the dictionary corresponding to the key.
     @type key: int
     @param key: a key to be searched
-    @rtype: any
-    @returns: the value corresponding to key.
+    @rtype: AVLNode
+    @returns: the AVLNode corresponding to key or None if key is not found.
     """
 
     def search(self, key):
@@ -188,6 +188,8 @@ class AVLTree(object):
         # If the inserted node is the root, no rebalancing needed
         if parent_node is None:
             return 0
+        
+        res = 0
 
         # Perform AVL rebalancing
         while parent_node is not None:
@@ -198,17 +200,20 @@ class AVLTree(object):
             # Check if rebalancing is needed
             if abs(BF) < 2 and parent_node.height == curr_height:
                 # No rebalancing needed, return 0
-                return 0
+                return res
+            
             elif abs(BF) < 2 and parent_node.height != curr_height:
                 # Adjust parent height and continue rebalancing
                 parent_node.height = curr_height
                 parent_node = parent_node.parent
+                res += 1
                 # If parent_node is None, stop rebalancing
                 if parent_node is None:
-                    return 0
+                    return res
             else:
                 # Rebalancing needed, perform rotation
-                return self.rotating_for_balance(parent_node)
+                res += self.rotating_for_balance(parent_node)
+                return res
 
     """ insert a node to binary search tree without changing heights """
 
@@ -358,6 +363,7 @@ class AVLTree(object):
                 # Adjust parent height and continue rebalancing
                 parent_node.height = curr_height
                 parent_node = parent_node.parent
+                res += 1
             else:
                 # Rebalancing needed, perform rotation and update res
                 father = parent_node.parent
@@ -422,12 +428,12 @@ class AVLTree(object):
             # Find the successor node
             successor_node = self.successor(node)
 
-            # Copy the key and value of the successor node to the node to be deleted
-            node.key = successor_node.key
-            node.value = successor_node.value
-
+            father = self.delete_bst(successor_node)
+            if father is node:
+                return self.replace_for_delete(node, successor_node)
+            a = self.replace_for_delete(node, successor_node)
             # Delete the successor node recursively
-            return self.delete_bst(successor_node)
+            return father
 
     """ Check if the given node is the right child of its parent """
     def im_right_child(self, node):
@@ -457,6 +463,20 @@ class AVLTree(object):
             node = node.left
         # Return the minimum node found
         return node
+    
+    def replace_for_delete(self, node, successor):
+        successor.parent = node.parent
+        successor.right = node.right
+        successor.left = node.left
+        successor.height = node.height
+        if successor.parent is None:
+            self.root = successor
+        elif self.im_right_child(successor):
+            successor.parent.right = successor
+        else:
+            successor.parent.left = successor
+        return successor
+
 
     """
     Returns an array representing the dictionary.
@@ -465,7 +485,17 @@ class AVLTree(object):
     @returns: a sorted list according to key of tuples (key, value) representing the data structure
     """
     def avl_to_array(self):
-        return None
+        arr = []
+        return self.rec_avl_to_array(self.root, arr)
+    
+    def rec_avl_to_array(self,  node, arr):
+        if not node.is_real_node():
+            return None
+        self.rec_avl_to_array(node.left, arr)
+        arr.append((node.key, node.value))
+        self.rec_avl_to_array(node.right, arr)
+
+        return arr
 
     """
     Returns the number of items in the dictionary.
@@ -504,7 +534,83 @@ class AVLTree(object):
     @returns: the absolute value of the difference between the height of the AVL trees joined
     """
     def join(self, tree2, key, val):
-        return None
+        res = abs(tree2.root.height - self.root.height) + 1
+        if self.root.key < tree2.root.key:
+            self.join_avl(self, tree2, key, val)
+        else:
+            self.join_avl(tree2, self, key, val)
+        return res
+    
+    def join_avl(self, tree1, tree2, key, val):
+        if abs(tree2.root.height - tree1.root.height) < 2:
+            tmp = insert_new_node(key, val)
+            tree1.root.parent = tmp
+            tree2.root.parent = tmp
+            tmp.right = tree2.root
+            tmp.left = tree1.root
+            self.root = tmp
+            self.root.height = self.compute_height(self.root)
+        elif tree2.root.height > tree1.root.height:
+            picked_node = tree2.root
+            h = tree1.root.height
+            while picked_node.height > h:
+                 picked_node = picked_node.left
+            node_x = insert_new_node(key, val)
+            node_x.left = tree1.root
+            node_x.left.parent = node_x
+            node_x.right = picked_node
+            node_x.parent = picked_node.parent
+            picked_node.parent = node_x
+            node_x.parent.left = node_x
+            self.root = tree2.root
+            self.size = 1 + tree2.size + tree1.size
+            node_x.height = self.compute_height(node_x)
+            num = self.check_if_rotation_needed_and_do(node_x.parent)
+        else:
+            picked_node = tree1.root
+            h = tree2.root.height
+            while picked_node.height > h:
+                 picked_node = picked_node.right
+            node_x = insert_new_node(key, val)
+            node_x.right = tree2.root
+            node_x.right.parent = node_x
+            node_x.left = picked_node
+            node_x.parent = picked_node.parent
+            picked_node.parent = node_x
+            node_x.parent.right = node_x
+            self.root = tree1.root
+            self.size = 1 + tree2.size + tree1.size
+            node_x.height = self.compute_height(node_x)
+            num = self.check_if_rotation_needed_and_do(node_x.parent)
+
+
+    def check_if_rotation_needed_and_do(self, parent_node):
+
+        res = 0  # Counter for rebalancing operations
+
+        # Perform AVL rebalancing
+        while parent_node is not None:
+            # Calculate the balance factor and current height of the parent node
+            BF = self.compute_bf(parent_node)
+            curr_height = self.compute_height(parent_node)
+
+            # Check if rebalancing is needed
+            if abs(BF) < 2 and parent_node.height == curr_height:
+                # No rebalancing needed, return the total number of rebalancing operations
+                return res
+            elif abs(BF) < 2 and parent_node.height != curr_height:
+                # Adjust parent height and continue rebalancing
+                parent_node.height = curr_height
+                parent_node = parent_node.parent
+                res += 1
+            else:
+                # Rebalancing needed, perform rotation and update res
+                father = parent_node.parent
+                res += self.rotating_for_balance(parent_node)
+                parent_node = father
+                
+        # Return the total number of rebalancing operations
+        return res
 
     """
     Returns the root of the tree representing the dictionary.
