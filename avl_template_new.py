@@ -518,7 +518,27 @@ class AVLTree(object):
     dictionary larger than node.key.
     """
     def split(self, node):
-        return None
+        tree1 = AVLTree()
+        tree2 = AVLTree()
+        tree1.root = node.left
+        tree1.root.parent = None
+        tree2.root = node.right
+        tree2.root.parent = None
+        res = [tree1, tree2]
+        father = node.parent
+        while father is not None:
+            tree_join = AVLTree()
+            if father.key < node.key:
+                tree_join.root = father.left
+                tree_join.root.parent = None
+                tree1.join(tree_join, father.key, father.value)
+            else:
+                tree_join.root = father.right
+                tree_join.root.parent = None
+                tree2.join(tree_join, father.key, father.value)
+            father = father.parent
+        return res
+
 
     """
     Joins self with key and another AVLTree.
@@ -535,7 +555,12 @@ class AVLTree(object):
     """
     def join(self, tree2, key, val):
         res = abs(tree2.root.height - self.root.height) + 1
-        if self.root.key < tree2.root.key:
+        if self.root.key is None:
+            tree2.insert(key, val)
+            self.root = tree2.root
+        elif tree2.root.key is None:
+            self.insert(key, val)
+        elif self.root.key < tree2.root.key:
             self.join_avl(self, tree2, key, val)
         else:
             self.join_avl(tree2, self, key, val)
