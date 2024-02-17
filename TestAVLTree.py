@@ -1,5 +1,6 @@
 import unittest
 from AVLTree import AVLTree, AVLNode
+from new_tests import tests
 
 
 
@@ -21,6 +22,8 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(avl_tree.search(7).value, "seven")
         self.assertEqual(avl_tree.search(2).value, "two")
         self.assertEqual(avl_tree.search(4).value, "four")
+        self.assertEqual(avl_tree.size, 5)
+
 
         # Search for a non-existing value
         self.assertIsNone(avl_tree.search(6))
@@ -368,4 +371,15 @@ class TestAVLTree(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    print("running tests from outsource")
+    print("running tests.testInsertDelete()")
+    tests.testInsertDelete()
+    print("running tests.test_avl_to_array()")
+    tests.test_avl_to_array()
+    print("running tests.test_join()")
+    tests.test_join()
+    print("running tests.test_split()")
+    tests.test_split()
+    print("running unittest")
     unittest.main()
+    
