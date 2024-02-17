@@ -1,8 +1,9 @@
-# username - almoghaviv
+# username1 - almoghaviv
 # id1      - 207298720
 # name1    - Almog Haviv
+# username2 - tal9
 # id2      - 322539651
-# name2    - tal9
+# name2    - Tal Cohen
 
 
 """A class representing a node in an AVL tree"""
