@@ -418,33 +418,27 @@ class AVLTree(object):
 
         # Case: Node has only one child (either left or right)
         elif not node.right.is_real_node():
-            if self.im_right_child(node):
+            if father is None:
+                self.root = node.left
+            elif self.im_right_child(node):
                 # If the node is a right child, replace it with its left child
-                if father is None:
-                    self.root = node.left
-                    return None
                 father.right = node.left
                 father.left.parent = father
             else:
                 # If the node is a left child, replace it with its left child
-                if father is None:
-                    self.root = node.left
-                    return None
                 father.left = node.left
                 father.left.parent = father
             return father
 
         elif not node.left.is_real_node():
-            if self.im_right_child(node):
+            if father is None:
+                self.root = node.right
+            elif self.im_right_child(node):
                 # If the node is a right child, replace it with its right child
-                if father is None:
-                    self.root = node.right
                 father.right = node.right
                 father.right.parent = father
             else:
                 # If the node is a left child, replace it with its right child
-                if father is None:
-                    self.root = node.right
                 father.left = node.right
                 father.left.parent = father
             return father
