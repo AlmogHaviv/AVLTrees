@@ -144,7 +144,7 @@ class AVLTree(object):
 
     def __init__(self):
         self.root = AVLNode(None, None)
-        self.size = 0
+        self.tree_size = 0
 
     """ 
     Searches for a value in the dictionary corresponding to the key.
@@ -190,7 +190,7 @@ class AVLTree(object):
         self.root = self.insert_to_bst(self.root, None, key, val)
 
         # Increment the size of the AVL tree
-        self.size += 1
+        self.tree_size += 1
 
         # Search for the newly inserted node
         node = self.search(key)
@@ -378,15 +378,15 @@ class AVLTree(object):
 
     def delete(self, node):  # time complexity : O(log(n))
         # Dealing with deleting the root
-        if self.size == 1:
+        if self.tree_size == 1:
             self.root = AVLNode(None, None)
-            self.size = 0
+            self.tree_size = 0
             return 0
         # Delete the node from the AVL tree and get the parent node of the deleted node
         parent_node = self.delete_bst(node)
 
         # Decrease the size of the AVL tree
-        self.size -= 1
+        self.tree_size -= 1
 
         # Perform AVL rebalancing if needed and return the number of rebalancing operations
         return self.check_if_rotation_needed_and_do(parent_node, False)
@@ -517,7 +517,6 @@ class AVLTree(object):
     def avl_to_array(self):  # time complexity : O(n)
         # Initialize an empty list to store the elements of the AVL tree
         arr = []
-
         # Recursively convert the AVL tree to an array
         return self.rec_avl_to_array(self.root, arr)
 
@@ -526,7 +525,7 @@ class AVLTree(object):
     def rec_avl_to_array(self, node, arr):  # time complexity : O(n)
         # Base case: if the node is a virtual node, return None
         if not node.is_real_node():
-            return None
+            return arr
 
         # Traverse the left subtree recursively
         self.rec_avl_to_array(node.left, arr)
@@ -547,7 +546,7 @@ class AVLTree(object):
     """
 
     def size(self):  # time complexity : O(1)
-        return self.size
+        return self.tree_size
 
     """
     Splits the dictionary at the i'th index.
@@ -613,7 +612,7 @@ class AVLTree(object):
     def join(self, tree2, key, val):  # time complexity : O(the absolute value of the difference between the height +1)
         # Calculate the absolute height difference between the two trees
         res = abs(tree2.root.height - self.root.height) + 1
-        self.size = 1 + tree2.size + self.size
+        self.tree_size = 1 + tree2.tree_size + self.tree_size
 
         # If self is empty, assign tree2 to self
         if self.root.key is None:

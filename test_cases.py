@@ -177,6 +177,5 @@ def test_split():
     print(subtree5B.avl_to_array())
 
 
-test_split()
 
 

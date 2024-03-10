@@ -22,11 +22,28 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(avl_tree.search(7).value, "seven")
         self.assertEqual(avl_tree.search(2).value, "two")
         self.assertEqual(avl_tree.search(4).value, "four")
-        self.assertEqual(avl_tree.size, 5)
+        self.assertEqual(avl_tree.size(), 5)
 
 
         # Search for a non-existing value
         self.assertIsNone(avl_tree.search(6))
+
+    def test_do_10000_insertions_and_deletions(self):
+        avl_tree = AVLTree()
+        for i in range(10000):
+            print(i)
+            avl_tree.insert(i, "num" + str(i))
+
+        # Check tree size after insertions
+        self.assertEqual(avl_tree.size() , 10000 , "FAIL - after 10000 insertions, size should be 10000")
+
+        for i in range(10000):
+            print(i)
+            avl_tree.delete(avl_tree.get_root())
+
+        self.assertEqual(avl_tree.size() , 0 , "FAIL - after deleting all nodes size should be 0")
+        self.add_points(2)
+
 
     def test_avl_insert_rebalance(self):
         avl_tree = AVLTree()
@@ -255,7 +272,7 @@ class TestAVLTree(unittest.TestCase):
         arr = avl_tree.avl_to_array()
 
         # Check that the node has been deleted and the successor node has taken its place
-        self.assertEqual(arr, nodes)
+        self.assertEqual(arr,nodes )
 
     def test_join(self):
         # Create two AVL trees
@@ -300,28 +317,52 @@ class TestAVLTree(unittest.TestCase):
         self.assertEqual(avl_tree1.root.left.get_value(), "3")
         self.assertEqual(avl_tree1.root.left.right.get_value(), "5")
         self.assertEqual(avl_tree1.root.left.left.get_value(), "1")
-    def test_join2(self):
+    def test_join3(self):
         # Create two AVL trees
         tree1 = AVLTree()
         tree2 = AVLTree()
 
         # Insert some nodes into the AVL trees
-        tree1.insert(2, "2")
+        tree1.insert(1, "1")
 
 
         tree2.insert(5, "5")
+        tree2.insert(3, "3")
+        tree2.insert(6, "6")
         tree2.insert(4, "4")
 
 
         # Join tree1 with tree2
-        height_difference = tree1.join(tree2, 3, "3")
+        height_difference = tree1.join(tree2, 2, "2")
 
         # Check if the join operation was successful
-        self.assertEqual(height_difference, 2)
+        self.assertEqual(height_difference, 3)
         self.assertEqual(tree1.root.get_value(), "3")
         self.assertEqual(tree1.root.left.get_value(), "2")
         self.assertEqual(tree1.root.right.get_key(), 5)
         self.assertEqual(tree1.root.right.left.get_value(), "4")
+        self.assertEqual(tree1.root.left.right.get_key(), None)
+
+        def test_join2(self):
+            # Create two AVL trees
+            tree1 = AVLTree()
+            tree2 = AVLTree()
+
+            # Insert some nodes into the AVL trees
+            tree1.insert(2, "2")
+
+            tree2.insert(5, "5")
+            tree2.insert(4, "4")
+
+            # Join tree1 with tree2
+            height_difference = tree1.join(tree2, 3, "3")
+
+            # Check if the join operation was successful
+            self.assertEqual(height_difference, 2)
+            self.assertEqual(tree1.root.get_value(), "3")
+            self.assertEqual(tree1.root.left.get_value(), "2")
+            self.assertEqual(tree1.root.right.get_key(), 5)
+            self.assertEqual(tree1.root.right.left.get_value(), "4")
 
 
 
